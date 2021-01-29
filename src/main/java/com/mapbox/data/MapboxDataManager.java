@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -33,10 +34,16 @@ public class MapboxDataManager {
     private String filePath;
 
     @Value("${mapbox.credential.url}")
-    private String mapBoxUrl;
+    private String mapBoxCredentialUrl;
 
-    @Value("${mapbox.credential.accessToken}")
-    private String accessToken;
+    @Value("${mapbox.upload.url}")
+    private String mapBoxUploadUrl;
+
+    @Value("${mapbox.accessToken}")
+    private String mapBoxAccessToken;
+
+    @Value("${mapbox.username}")
+    private String mapBoxUsername;
 
     private String awsEndpointUrl;
 
@@ -76,7 +83,7 @@ public class MapboxDataManager {
     private String getS3Credentials() {
         logger.info("get s3 credentials");
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response  = restTemplate.postForEntity(mapBoxUrl + "?access_token=" + accessToken, null , String.class);
+        ResponseEntity<String> response  = restTemplate.postForEntity(mapBoxCredentialUrl + "?access_token=" + mapBoxAccessToken, null , String.class);
         logger.info(response.getBody());
         return response.getBody();
     }
@@ -98,6 +105,11 @@ public class MapboxDataManager {
     private void completeUpload() {
         //TODO
         logger.info("Completing upload");
+        String url = mapBoxUploadUrl + "/" + mapBoxUsername + "?access_token=" + mapBoxAccessToken;
+        RestTemplate restTemplate = new RestTemplate();
+        HttpEntity<Upload> request = new HttpEntity<>(new Upload(mapBoxUsername + "_tileset", awsEndpointUrl, "tileSetName"));
+        ResponseEntity<String> response  = restTemplate.postForEntity(url , request , String.class);
+
     }
 
 
